@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Target Tap</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,Arial,sans-serif;background:linear-gradient(135deg,#111827,#26345a);color:#fff;min-height:100vh;display:grid;place-items:center;padding:16px}
+  .card{width:min(600px,100%);background:#ffffff12;border:1px solid #ffffff25;border-radius:22px;padding:20px;text-align:center;box-shadow:0 20px 60px #0005}
+  h1{margin:0 0 6px;font-size:2rem} p{margin:6px 0 16px;color:#dbeafe}
+  .stats{display:flex;justify-content:space-around;font-size:1.1rem;font-weight:700;margin:12px 0}
+  #arena{height:min(55vh,390px);min-height:280px;position:relative;overflow:hidden;background:#0b1225;border:2px solid #52658d;border-radius:16px;touch-action:manipulation}
+  #target{position:absolute;width:62px;height:62px;border:0;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#ffd166 35%,#ff6b35 70%);box-shadow:0 0 22px #ffb347;cursor:pointer;display:none}
+  #start{margin:14px 0 0;border:0;border-radius:12px;background:#7c3aed;color:white;font-size:1.1rem;font-weight:700;padding:12px 24px;cursor:pointer}
+  #message{min-height:28px;font-weight:700;color:#fde68a;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>🎯 Target Tap</h1>
+  <p>Tap the glowing target as many times as you can in 20 seconds!</p>
+  <div class="stats"><span>Score: <b id="score">0</b></span><span>Time: <b id="time">20</b>s</span><span>Best: <b id="best">0</b></span></div>
+  <div id="arena" aria-label="Game area"><button id="target" aria-label="Tap target"></button></div>
+  <button id="start">Start Game</button>
+  <div id="message">Ready? Tap Start Game!</div>
+</div>
+<script>
+(() => {
+  const arena=document.getElementById('arena'), target=document.getElementById('target');
+  const scoreEl=document.getElementById('score'), timeEl=document.getElementById('time'), bestEl=document.getElementById('best');
+  const start=document.getElementById('start'), message=document.getElementById('message');
+  let score=0,time=20,timer=null,playing=false;
+  let best=Number(localStorage.getItem('targetTapBest')||0); bestEl.textContent=best;
+  function moveTarget(){
+    const pad=8, maxX=Math.max(pad,arena.clientWidth-target.offsetWidth-pad), maxY=Math.max(pad,arena.clientHeight-target.offsetHeight-pad);
+    target.style.left=(pad+Math.random()*(maxX-pad))+'px';
+    target.style.top=(pad+Math.random()*(maxY-pad))+'px';
+  }
+  function finish(){
+    playing=false;clearInterval(timer);target.style.display='none';start.textContent='Play Again';
+    message.textContent=`Time's up! Your score: ${score}. ${score>best?'New best! 🏆':'Nice tapping!'}`;
+    if(score>best){best=score;localStorage.setItem('targetTapBest',best);bestEl.textContent=best;}
+  }
+  start.addEventListener('click',()=>{
+    if(playing)return;score=0;time=20;playing=true;scoreEl.textContent=score;timeEl.textContent=time;
+    message.textContent='Go!';start.textContent='Playing…';target.style.display='block';moveTarget();
+    timer=setInterval(()=>{time--;timeEl.textContent=time;if(time<=0)finish();},1000);
+  });
+  target.addEventListener('click',()=>{if(!playing)return;score++;scoreEl.textContent=score;moveTarget();});
+  window.addEventListener('resize',()=>{if(playing)moveTarget();});
+})();
+</script>
+</body>
+</html>
